@@ -1,31 +1,41 @@
 const Modal = {
     open(){
-        document.querySelector('.modal-overlay').classList.add('active')
-    
+        document.querySelector('.modal-overlay')?.classList.add('active');
     },
+    
     close(){
-        document.querySelector('.modal-overlay').classList.remove('active')
+        document.querySelector('.modal-overlay')?.classList.remove('active')
     }
 }
 
 const Storages = {
     get() {
-        return JSON.parse(localStorage.getItem("finances:transaction")) || []
+        return JSON.parse(localStorage.getItem("finances:transaction")  || '{}');
     },
 
-    set(transactions) {
+    set(transactions:String) {
         localStorage.setItem("finances:transaction", JSON.stringify(transactions))
     }
+}
+interface Itransaction {
+    [x: string]: any;
+    getValues(): { description: string; amount: any; date: any; };
+    validateFields(): void;
+    formatData() : void;
+    clearField() : void;
+    description:any;
+    amount:any;
+    date:any;
 }
 
 const Transaction = {
     all: Storages.get(),
 
-    add(transaction){
+    add(transaction:Itransaction | void){
         Transaction.all.push(transaction)
         App.reload()
     },
-    remove(index){
+    remove(index:number){
         Transaction.all.splice(index,1) 
         App.reload();
 
@@ -34,7 +44,7 @@ const Transaction = {
         //somar entradas
         let income = 0
 
-        Transaction.all.forEach(transaction => {
+        Transaction.all.forEach((transaction: { amount: number; }) => {
             if(transaction.amount > 0){
                 income += transaction.amount
             }
@@ -47,7 +57,7 @@ const Transaction = {
         //somar as saídas
         let expense = 0
 
-        Transaction.all.forEach(transaction => {
+        Transaction.all.forEach((transaction: { amount: number; }) => {
             if(transaction.amount < 0 ){
                 expense += transaction.amount
             }
@@ -66,15 +76,15 @@ const Transaction = {
 const DOM = {
     transactionContainer: document.querySelector('#data-table tbody'),
 
-    addTransaction(transaction, index){
+    addTransaction(transaction: any, index: string | undefined){
         const tr = document.createElement('tr')
         tr.innerHTML = DOM.innerHTMLTransaction(transaction,index)
         tr.dataset.index = index
 
-        DOM.transactionContainer.appendChild(tr)
+        DOM.transactionContainer?.appendChild(tr)
     },
 
-    innerHTMLTransaction(transaction,index){
+    innerHTMLTransaction(transaction: { amount: number; description: any; date: any; },index: string | undefined){
         const CSSclas = transaction.amount > 0 ? "income" : "expense"
         const amount = Utils.formatCurrency(transaction.amount)
         
@@ -91,29 +101,41 @@ const DOM = {
         return html
     },
     
-    updateBalance() {
-        document.getElementById('incomeDisplay').innerHTML = Utils.formatCurrency(Transaction.incomes())
-        document.getElementById('expenseDisplay').innerHTML = Utils.formatCurrency(Transaction.expenses())
-        document.getElementById('totalDisplay').innerHTML = Utils.formatCurrency(Transaction.total())
+    updateBalance() { 
+        let income = document.getElementById('incomeDisplay');
+        if(income != null){
+            income.innerHTML = Utils.formatCurrency(Transaction.incomes());
+        }
+        let expense = document.getElementById('expenseDisplay');
+        if(expense != null){
+            expense.innerHTML = Utils.formatCurrency(Transaction.expenses());
+        }
+        let total = document.getElementById('totalDisplay');
+        if(total != null){
+            total.innerHTML = Utils.formatCurrency(Transaction.total())
+        }
     },   
 
     clearTransaction(){
-        DOM.transactionContainer.innerHTML = ""
+        let transaction = DOM.transactionContainer;
+        if(transaction != null){
+            transaction.innerHTML = "";
+        }
     }
 
 }
 
 const Utils = {
-    formatAmount(value){
+    formatAmount(value: number){
         value = value * 100
 
         return Math.round(value)
     },
-    formatDate(value) {
+    formatDate(value: string) {
         const splitedDate = value.split("-")
         return `${splitedDate[2]}/${splitedDate[1]}/${splitedDate[0]}`
     },
-    formatCurrency(value) {
+    formatCurrency(value: string | number) {
         const signal = Number(value) < 0 ? "-": ""
 
         value = String(value).replace(/\D/g, "") //expreção regular
@@ -126,10 +148,11 @@ const Utils = {
     }
 }
 
-const Form = {
+const Form:Itransaction = {
     description: document.querySelector('input#description'),
     amount: document.querySelector('input#amount'),
     date : document.querySelector('input#date'),
+
     getValues(){
         return {
             description: Form.description.value,
@@ -165,7 +188,7 @@ const Form = {
         Form.date.value = ""
     },
 
-    submit(event){ 
+    submit(event:Itransaction){ 
         event.preventDefault()
 
         try {
@@ -185,7 +208,7 @@ const Form = {
 
 const App = {
     init() {
-        Transaction.all.forEach((transaction,index) => { //posso pasar a função addtransaction aqui ... ela recebe os valores
+        Transaction.all.forEach((transaction: any,index: string | undefined) => { //posso pasar a função addtransaction aqui ... ela recebe os valores
             DOM.addTransaction(transaction,index)
         })
         DOM.updateBalance()

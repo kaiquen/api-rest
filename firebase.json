@@ -2,6 +2,7 @@
   "hosting": {
     "public": "src",
     "ignore": [
+      "/src/scripts.ts",
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
