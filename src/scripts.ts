@@ -205,7 +205,6 @@ const Form:Itransaction = {
     }
 }
 
-
 const App = {
     init() {
         Transaction.all.forEach((transaction: any,index: string | undefined) => { //posso pasar a função addtransaction aqui ... ela recebe os valores
@@ -219,6 +218,5 @@ const App = {
         App.init()
     },
 }
-
 
 App.init()
